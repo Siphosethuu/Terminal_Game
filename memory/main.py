@@ -39,9 +39,9 @@ def memory_game() -> None:
 
 def play_round(game_window: window, tiles: list[Tile]) -> None:
 
-    faces: list[str] = [item for item in "📊📈📉📅📔📒📘📙📚🍏🍎🫐🍒🥭"] * 2
+    faces: list[str] = [item for item in "📊📈📉📅📔📘📙📚🍏🫐🍒🥭"] * 2
 
-    player_move: int = len(faces) + 1 
+    player_move: int = len(faces) + 5
 
     HEIGHT: int = ceil(len(faces) ** 0.5)
     WIDTH : int = (len(faces) // HEIGHT) * Tile.WIDTH
@@ -64,12 +64,7 @@ def play_round(game_window: window, tiles: list[Tile]) -> None:
 
     while True:
 
-        game_window.clear()
-
-        for tile in tiles:
-            game_window.addstr(tile.y, tile.x, f"{tile}")
-
-        game_window.touchwin()
+        display_cards(game_window, tiles)
 
         key: str = game_window.getkey()
         
@@ -89,9 +84,15 @@ def play_round(game_window: window, tiles: list[Tile]) -> None:
                     flippedtiles.append(tile)
                     if len(flippedtiles) == 2:
                         one, two = flippedtiles
+
+                        display_cards(
+                            game_window, tiles
+                            )
+                        curses.napms(1000)
                         if one.face != two.face:
                             one.is_face_up = False
                             two.is_face_up = False
+                            
                         flippedtiles = []
                         player_move -= 1 
         if all(tile.is_face_up for tile in tiles):
@@ -99,6 +100,14 @@ def play_round(game_window: window, tiles: list[Tile]) -> None:
         elif player_move == 0:
             break
 
+
+def display_cards(win: window, tiles: list[Tile]) -> None:
+    win.clear()
+
+    for tile in tiles:
+        win.addstr(tile.y, tile.x, f"{tile}")
+    win.touchwin()
+    win.refresh()
 
 
 if __name__ == "__main__":
