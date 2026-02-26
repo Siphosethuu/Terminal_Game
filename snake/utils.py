@@ -1,21 +1,34 @@
 import curses
 
-from typing import Tuple
-from os import get_terminal_size
-    
+from typing import Dict, Tuple
+from enum import Enum
+from consts import LINES, COLS
 
 
-SIZE = get_terminal_size()
-LINES: int = SIZE.lines
-COLS: int = SIZE.columns
-BODY_PART: str = "██"
+class Direction(Enum):
+    UP = (-1, 0)
+    DOWN = (1, 0)
+    LEFT  = (0, -1)
+    RIGHT = (0, 1)
+
+    def __init__(self, y: int, x: int) -> None:
+        self.y = y
+        self.x = x
 
 
-class SnakeDirection:
-    UP: Tuple[int, int] = (-1, 0)
-    DOWN: Tuple[int, int] = (1, 0)
-    LEFT: Tuple[int, int] = (0, -1)
-    RIGHT: Tuple[int, int] = (0, 1)
+    @property
+    def opposite(self) -> "Direction":
+
+        opposites: Dict[str, Direction] = {
+            "UP": Direction.DOWN, 
+            "DOWN": Direction.UP,
+            "LEFT": Direction.RIGHT,
+            "RIGHT": Direction.LEFT 
+        }
+
+        return opposites[self.name]
+
+
 
 class Keys:
     UP: int = curses.KEY_UP
@@ -23,4 +36,28 @@ class Keys:
     DOWN: int = curses.KEY_DOWN
     LEFT: int = curses.KEY_LEFT
     RIGHT: int = curses.KEY_RIGHT
+
+
+def get_box_stage() -> Dict[Tuple[int, int], int]:
+    global LINES, COLS
+
+    stage = {}
+
+    for y in range(0, LINES):
+        stage[(y, 0)] = 0
+        stage[(y, COLS)] = 0
+
+    for x in range(0, COLS):
+        stage[(0, x)] = 0
+        stage[(LINES, x)] = 0
+
+    return stage
+
+def get_tunnel_stage() -> Dict[Tuple[int, int], int]:
+
+    stage = {}
+
+    return stage
+
+
 
