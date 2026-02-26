@@ -27,7 +27,7 @@ class Game:
         self.GAME_WINDOW.bkgd(' ', color_pair)
 
 
-    def start(self, stage: Stage) -> None:
+    def start(self, stage: Stage) -> str:
 
         snake: Snake = Snake()
         direction: Direction = Direction.RIGHT 
@@ -42,9 +42,9 @@ class Game:
             )
 
             if snake.body.get(new_head, False):
-                break 
+                return f"Bit yourself at {head}." 
             if stage.edge.get(new_head, False):
-                break
+                return f"Hit edge at {new_head}; ({LINES}, {COLS})."
 
             snake.grow(new_head)
 
@@ -58,10 +58,10 @@ class Game:
 
             stage.draw(self.GAME_WINDOW)
             
-            """self.GAME_WINDOW.addstr(
+            self.GAME_WINDOW.addstr(
                 0, 0, f"Score: {score}".center(COLS),
                 curses.A_BOLD
-            )"""
+            )
             self.GAME_WINDOW.addstr(
                 food[0], food[1], SNAKE_FOOD
             )
@@ -109,8 +109,8 @@ class Game:
 
     def get_position(self, head: Tuple[int, int], delta: Direction) -> Tuple[int, int]:
 
-        new_y: int = ( head[0] + delta.y ) % (LINES -2) 
-        new_x: int = ( head[1] + delta.x ) % (COLS - 2) 
+        new_y: int = ( head[0] + delta.y ) % (LINES -1) 
+        new_x: int = ( head[1] + delta.x ) % (COLS - 1) 
 
         return (new_y, new_x) 
 

@@ -5,7 +5,7 @@
 from typing import Dict, Tuple
 from curses import color_pair, init_pair, window, COLOR_BLUE, COLOR_MAGENTA
 
-BLOCK: str = '  '
+BLOCK: str = ' '
 
 
 class Stage:
@@ -19,6 +19,6 @@ class Stage:
         try:
             for y, x in self.edge:
                 game_window.addstr(y, x, BLOCK)
-        except Exception as e:
+        except Exception:
             pass
         game_window.attroff(self.color)
