@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from typing import Tuple
 from snake.utils import LINES, COLS, BODY_PART
-from _curses import window
+from curses import window, A_REVERSE
 
 
 
@@ -37,4 +37,4 @@ class Snake():
         global BODY_PART
 
         for y, x in self.body:
-            canvas.addstr(y, x, BODY_PART)
+            canvas.addstr(y, x, BODY_PART, A_REVERSE)

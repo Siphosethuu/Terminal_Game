@@ -43,13 +43,14 @@ def get_box_stage() -> Dict[Tuple[int, int], int]:
 
     stage = {}
 
-    for y in range(0, LINES):
-        stage[(y, 0)] = 0
-        stage[(y, COLS)] = 0
+    for y in range(1, LINES - 1):
 
-    for x in range(0, COLS):
-        stage[(0, x)] = 0
-        stage[(LINES, x)] = 0
+        stage[(y, 0)] = 0
+        stage[(y, COLS - 3)] = 0
+
+    for x in range(0, COLS - 1):
+        stage[(1, x)] = 0
+        stage[(LINES - 3, x)] = 0
 
     return stage
 
@@ -60,4 +61,5 @@ def get_tunnel_stage() -> Dict[Tuple[int, int], int]:
     return stage
 
 
-
+SNAKE_FOOD: str = ' ©'
+BODY_PART : str = '  '

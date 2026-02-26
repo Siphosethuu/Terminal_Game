@@ -4,12 +4,11 @@ from typing import Tuple
 
 from snake.snake import Snake 
 from _curses import window
-from utils import Direction, Keys
+from snake.stage import Stage
+from snake.utils import Direction, Keys, SNAKE_FOOD
 from random import randint
 from consts import LINES, COLS
 
-SNAKE_FOOD: str = '🍊'
-BODY_PART : str = '⬛'
 FPS: int = 64
 
 class Game:
@@ -28,10 +27,11 @@ class Game:
         self.GAME_WINDOW.bkgd(' ', color_pair)
 
 
-    def play_snake(self) -> None:
+    def start(self, stage: Stage) -> None:
+
         snake: Snake = Snake()
         direction: Direction = Direction.RIGHT 
-        food: Tuple[int, int] = self.get_food(snake)
+        food: Tuple[int, int] = self.get_food(snake, stage)
         score: int = 0
 
         while True:
@@ -41,8 +41,10 @@ class Game:
                 head, direction
             )
 
-            if not snake.body.get(new_head, None):
+            if snake.body.get(new_head, False):
                 break 
+            if stage.edge.get(new_head, False):
+                break
 
             snake.grow(new_head)
 
@@ -50,19 +52,23 @@ class Game:
                 snake.remove_tail()
             else:
                 score += 1
-                food = self.get_food(snake)
+                food = self.get_food(snake, stage)
 
             self.GAME_WINDOW.clear()
+
+            stage.draw(self.GAME_WINDOW)
             
-            self.GAME_WINDOW.addstr(
+            """self.GAME_WINDOW.addstr(
                 0, 0, f"Score: {score}".center(COLS),
                 curses.A_BOLD
-            )
+            )"""
             self.GAME_WINDOW.addstr(
                 food[0], food[1], SNAKE_FOOD
             )
 
             snake.draw(self.GAME_WINDOW)
+
+            self.GAME_WINDOW.refresh()
 
             key: int = self.GAME_WINDOW.getch()
 
@@ -79,42 +85,46 @@ class Game:
                     if direction.name != "LEFT":
                         direction = Direction.RIGHT
                 case Keys.LEFT:
-                    if direction != "RIGHT":
+                    if direction.name != "RIGHT":
                         direction = Direction.LEFT 
                 case Keys.ESC:
                     #display_menu()
                     pass
-            self.GAME_WINDOW.refresh()
+            self.GAME_WINDOW.touchwin()
         curses.curs_set(self.old_visibility)
 
 
-    def get_food(self, snake: Snake) -> Tuple[int, int]:
+    def get_food(self, snake: Snake, stage: Stage) -> Tuple[int, int]:
         while True:
-            food_y: int = randint(0, LINES - 2)
-            food_x: int = randint(0, COLS  - 2)
+            food_y: int = randint(0, LINES - 3)
+            food_x: int = randint(0, COLS  - 3)
             food = (food_y, food_x)
             if snake.body.get(food, None):
-                continue 
+                continue
+            if stage.edge.get(food, None):
+                continue
             
             return food 
 
 
     def get_position(self, head: Tuple[int, int], delta: Direction) -> Tuple[int, int]:
 
-        new_y: int = ( head[0] + delta.y ) % LINES 
-        new_x: int = ( head[1] + delta.x ) % COLS 
+        new_y: int = ( head[0] + delta.y ) % (LINES -2) 
+        new_x: int = ( head[1] + delta.x ) % (COLS - 2) 
 
         return (new_y, new_x) 
 
 
     def is_food_eaten(self, *args: Tuple[int, int]) -> bool:
         head, food = args
-        # hy, hx, fy, fx = args 
 
-        # dy, dx = abs(hy - fy), abs(hx - fx) 
+        hy, hx = head
+        fy, fx = food
 
-        # return 0 <= dy <= 1 and 0 <= dx <= 1
+        dx = hx - fx
 
-        return head == food
+        return hy == fy and 0 <= dx <= 3
+        
+        # return head == food
 
 
