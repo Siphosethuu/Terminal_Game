@@ -79,16 +79,16 @@ class Game:
             curses.napms(FPS)
 
             match key:
-                case Keys.UP:
+                case Keys.UP | 119 | 87:
                     if direction.name != "DOWN":
                         direction = Direction.UP 
-                case Keys.DOWN:
+                case Keys.DOWN | 115 | 83:
                     if direction.name != "UP":
                         direction = Direction.DOWN 
-                case Keys.RIGHT:
+                case Keys.RIGHT | 100 | 68:
                     if direction.name != "LEFT":
                         direction = Direction.RIGHT
-                case Keys.LEFT:
+                case Keys.LEFT | 97 | 65:
                     if direction.name != "RIGHT":
                         direction = Direction.LEFT 
                 case Keys.ESC:

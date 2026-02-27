@@ -1,6 +1,6 @@
 import sys
 
-from snake.utils import get_box_stage 
+from snake.utils import get_tunnel_stage
 from snake.game import Game
 
 import curses
@@ -14,7 +14,7 @@ def main(stdscr: curses.window) -> None:
 
 def play_snake() -> str:
     game: Game = Game()
-    return game.start( get_box_stage() )
+    return game.start( get_tunnel_stage() )
 
 if __name__ == "__main__":
     curses.wrapper(main)
