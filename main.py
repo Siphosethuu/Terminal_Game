@@ -1,4 +1,4 @@
-
+import sys
 
 from snake.utils import get_box_stage 
 from snake.game import Game
@@ -9,11 +9,8 @@ def main(stdscr: curses.window) -> None:
     curses.start_color()
 
 
-    stdscr.addstr(0, 0, f"{play_snake()}", curses.A_BOLD)
-
-    
-
-    stdscr.getch()
+    stdscr.addstr(0, 0,f"{play_snake()}" , curses.A_BOLD)
+    sys.exit("Game should be done.")
 
 def play_snake() -> str:
     game: Game = Game()
@@ -21,3 +18,4 @@ def play_snake() -> str:
 
 if __name__ == "__main__":
     curses.wrapper(main)
+

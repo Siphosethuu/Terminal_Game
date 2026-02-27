@@ -33,6 +33,9 @@ class Snake():
         for body_part in self.body:
             return body_part
 
+    def overlaps(self, pos: Tuple[int, int]) -> bool:
+        return not self.body.get(pos, None) is None
+
     def draw(self, canvas: window) -> None:
         global BODY_PART
 

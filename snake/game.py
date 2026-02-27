@@ -9,13 +9,15 @@ from snake.utils import Direction, Keys, SNAKE_FOOD
 from random import randint
 from consts import LINES, COLS
 
-FPS: int = 64
+
+
+FPS: int = 100
 
 class Game:
     def __init__(self) -> None:
 
         self.GAME_WINDOW: window = curses.newwin(
-            LINES - 1, COLS - 1, 0, 0
+            curses.LINES, curses.COLS + 1, 0, 0
         )
 
         self.GAME_WINDOW.keypad(True)
@@ -41,10 +43,12 @@ class Game:
                 head, direction
             )
 
-            if snake.body.get(new_head, False):
-                return f"Bit yourself at {head}." 
-            if stage.edge.get(new_head, False):
+            if snake.overlaps(new_head):
+                return f"Bit yourself at {new_head}." 
+            if stage.overlaps(new_head):
                 return f"Hit edge at {new_head}; ({LINES}, {COLS})."
+
+            new_head = self.wrap_pos(new_head)
 
             snake.grow(new_head)
 
@@ -59,8 +63,8 @@ class Game:
             stage.draw(self.GAME_WINDOW)
             
             self.GAME_WINDOW.addstr(
-                0, 0, f"Score: {score}".center(COLS),
-                curses.A_BOLD
+                0, 0, f"Score: {score}".center(curses.COLS),
+                curses.A_BOLD | curses.A_STANDOUT
             )
             self.GAME_WINDOW.addstr(
                 food[0], food[1], SNAKE_FOOD
@@ -96,24 +100,29 @@ class Game:
 
     def get_food(self, snake: Snake, stage: Stage) -> Tuple[int, int]:
         while True:
-            food_y: int = randint(0, LINES - 3)
-            food_x: int = randint(0, COLS  - 3)
+            food_y: int = randint(1, LINES)
+            food_x: int = randint(1, COLS )
             food = (food_y, food_x)
-            if snake.body.get(food, None):
+            if snake.overlaps(food):
                 continue
-            if stage.edge.get(food, None):
+            if stage.overlaps(food):
                 continue
             
             return food 
 
 
-    def get_position(self, head: Tuple[int, int], delta: Direction) -> Tuple[int, int]:
+    def get_position(self, pos: Tuple[int, int], delta: Direction) -> Tuple[int, int]:
 
-        new_y: int = ( head[0] + delta.y ) % (LINES -1) 
-        new_x: int = ( head[1] + delta.x ) % (COLS - 1) 
+        y, x = pos
+
+        new_y: int = ( y + delta.y ) 
+        new_x: int = ( x + delta.x )
 
         return (new_y, new_x) 
 
+    def wrap_pos(self, pos: Tuple[int, int]) -> Tuple[int, int]:
+
+        return ( pos[0] % curses.LINES, pos[1] % curses.COLS)
 
     def is_food_eaten(self, *args: Tuple[int, int]) -> bool:
         head, food = args
