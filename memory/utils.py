@@ -1,5 +1,5 @@
 
 
-DEFAULT_FACE: str = '🔷'
+DEFAULT_FACE: str = '♥'
 
 

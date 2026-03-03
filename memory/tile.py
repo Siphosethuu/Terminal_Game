@@ -9,6 +9,7 @@ class Tile(Button):
         super().__init__(y, x)
 
         self.is_face_up: bool = False
+
         self.face = face
 
     def __str__(self) -> str:

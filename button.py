@@ -16,7 +16,7 @@ class Button:
         y, x = mouse_pos
         
 
-        return self.y == y and self.x <= x < self.x + Button.WIDTH
+        return self.y == y and self.x <= x <= self.x + Button.WIDTH
 
 
     def __str__(self) -> str:
