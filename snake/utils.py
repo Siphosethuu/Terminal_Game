@@ -93,3 +93,12 @@ def get_tunnel_stage() -> Stage:
     return Stage(walls)
 
 
+def get_half_world_stage() -> Stage:
+    CENTER_Y: int = LINES + 1 // 4
+    wall = {(CENTER_Y, x): ' ' for x in range(0, COLS)}
+
+    return Stage(wall)
+
+def get_quarter_world_stage() -> Stage:
+    raise NotImplementedError
+
