@@ -22,7 +22,7 @@ ASSETS: str = path.join(FOLDER, "assets.json")
 
 class Game:
     def __init__(self) -> None:
-        self._round: int = 2 
+        self._round: int = 6 
 
         self.screen: window = curses.newwin(
             LINES, COLS, 0, 0

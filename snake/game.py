@@ -5,9 +5,9 @@ from typing import Tuple
 from snake.snake import Snake 
 from _curses import window
 from snake.stage import Stage
-from snake.utils import Direction, Keys, SNAKE_FOOD
+from snake.utils import Keys, SNAKE_FOOD
 from random import randint
-from consts import LINES, COLS
+from consts import LINES, COLS, Direction
 
 
 
