@@ -7,7 +7,7 @@ from _curses import window
 from snake.stage import Stage
 from snake.utils import Keys, SNAKE_FOOD
 from random import randint
-from consts import LINES, COLS, Direction
+from consts import LINES, COLS, Direction, hide_cursor
 
 
 
@@ -29,6 +29,7 @@ class Game:
         self.GAME_WINDOW.bkgd(' ', color_pair)
 
 
+    @hide_cursor()
     def start(self, stage: Stage) -> str:
 
         snake: Snake = Snake()
@@ -95,7 +96,7 @@ class Game:
                     #display_menu()
                     pass
             self.GAME_WINDOW.touchwin()
-        curses.curs_set(self.old_visibility)
+        #curses.curs_set(self.old_visibility)
 
 
     def get_food(self, snake: Snake, stage: Stage) -> Tuple[int, int]:

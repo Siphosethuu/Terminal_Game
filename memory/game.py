@@ -132,4 +132,7 @@ class Game:
                         faces.pop(),
                         y, x)
                 )
+        self.screen.addstr(3, 0, f"{len(self.tiles) = }; {len(faces) = }")
+        self.screen.refresh()
+        curses.napms(5000)
 
