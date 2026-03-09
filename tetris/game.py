@@ -1,48 +1,53 @@
 import curses
 from math import ceil
-from typing import List
+from typing import List, Tuple
 from tetris.shapes import Shape
-from random import  randint
-from consts import hide_cursor
+from random import  choice
+from consts import Keys, BLOCK, hide_cursor
 
-
+shapes: List[str] = ['L', 'J', 'Z', 'S', 'T', 'O']
 class Game:
-    def __init__(self) -> None:
+    def __init__(self, stdscr: curses.window) -> None:
         self.screen: curses.window = curses.newwin(
             curses.LINES, curses.COLS, 0, 0
         )
+        self.bg_window = stdscr
 
         self.score: int = 0
         self.screen.nodelay(True)
         self.screen.keypad(True)
 
-    @hide_cursor()
+    @hide_cursor() # type: ignore
     def start(self) -> None:
-        Shape.set_screen(self.screen)
         shape: Shape = self.generate_shape()
-        grounded: List[Shape] = []
-        value: float = 0.0
+        grounded: List[Tuple] = []
         while True:
             self.screen.clear()
-            shape.display()
-            value += 0.00000001
-            if ceil(value) == 1:
-                shape.fall()
-                self.screen.addstr(0, 0, f"Down. ({shape.y})")
-                value = 0.0
+            shape.display(self.screen)
+            curses.napms(64)
+            shape.fall(self.screen)
+            curses.napms(64)
+            # shape.rotate(self.screen)
+            for y, x, char in grounded:
+                self.screen.addstr(y, x, char)
             self.screen.refresh()
             if shape.is_grounded:
-                grounded.append(shape)
-                shape = self.generate_shape()
 
+                for y, x in shape.body:
+                    new_y, new_x = shape.y+y,shape.x+x
+                    grounded.append(
+                        (new_y, new_x, BLOCK)
+                    )
+                shape = self.generate_shape()
             key: int = self.screen.getch()
             match key:
-                case 27:
+                case Keys.ESC:
                     exit()
+                case "KEY_LEFT"
                 case _:
                     pass
 
     def generate_shape(self) -> Shape:
-        return Shape('L')
+        return Shape(choice(shapes))
 
 
