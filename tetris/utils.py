@@ -64,8 +64,9 @@ SHAPES = {
     }
 }
 
-ROTATION_DIRS: List[Direction] = [
-    Direction.NONE, Direction.RIGHT, Direction.LEFT]
+ROTATION_DIRECTIONS: Tuple = (
+    Direction.NONE, Direction.RIGHT, Direction.LEFT
+)
 
 TOP_LEFT_CORNER: Tuple[int, int] = (0, 0)
 BOTTOM_RIGHT_CORNER: Tuple[int, int] = (LINES, COLS)

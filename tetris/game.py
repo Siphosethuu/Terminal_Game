@@ -13,21 +13,45 @@ class Game:
         self.shapes: List[Shape] = Shape.create_shapes(self.screen)
         self.lock: Lock = Lock()
         self.score: int = 0
+        self.is_running: bool = True
         self.screen.nodelay(True)
         self.screen.keypad(True)
 
     @hide_cursor() # type: ignore
     def start(self) -> None:
         shuffle(self.shapes)
-        shape: Shape = self.shapes.pop()
-        while self.shapes:
+        self.init_waiting_list()
+        shape: Shape = self.waiting_list.pop()
+        while self.is_running:
             shape.fall()
-            curses.napms(64)
             if shape.is_grounded:
-                shape = self.shapes.pop()
+                shape.reset()
+                self.shapes.append(shape)
+                self.lock.acquire()
+                self.waiting_list.append(
+                        self.shapes.pop(0))
+                self.lock.release()
+                shape = self.waiting_list.pop(0)
+
             shape.input()
-            shape.rotate()
-            curses.napms(250)
+
+    def init_waiting_list(self) -> None:
+        self.waiting_list: List[Shape] = []
+        self.lock.acquire()
+        for _ in range(0, 3):
+            self.waiting_list.append(
+                self.shapes.pop(0))
+        self.lock.release()
+        
+
+    def permanent_shuffler(self) -> None:
+        while self.is_running:
+            self.lock.acquire()
+            shuffle(self.shapes)
+            self.lock.release()
+
+    def strip_lines(self) -> None:
+        raise NotImplementedError()
 
             
 

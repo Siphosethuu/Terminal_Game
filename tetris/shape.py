@@ -62,7 +62,7 @@ class Shape:
 
 
     def translate(self, direction: Direction) -> bool:
-        if self.is_another_piece_obstructing(direction) or not self.is_within_bounds():
+        if self.is_another_piece_obstructing(direction) or not self.is_within_bounds(direction):
             return False
 
         self.display(self.bkgd_attr)
@@ -79,7 +79,7 @@ class Shape:
 
     def input(self) -> None:
         key: int = self.screen.getch()
-        napms(84)
+        napms(250)
         match key:
             case Keys.UP | 119 | 87:
                 self.rotate()
@@ -94,24 +94,18 @@ class Shape:
                 pass
 
     def rotate(self) -> None:
-        global SHAPES
+        global SHAPES, ROTATION_DIRECTIONS
 
 
         self.display(self.bkgd_attr)
 
-        self.rotation = (self.rotation + 1) % len(
-            self.rotations)
-        for delta in (Direction.NONE, Direction.RIGHT, Direction.LEFT):
-            self.y += delta.y
-            self.x += delta.x
-            if not self.is_another_piece_obstructing(delta):
-                self.display(self.attribute)
+        old_rotation = self.rotation
+        self.rotation = (self.rotation + 1) % len(self.rotations)
+        for delta in ROTATION_DIRECTIONS:
+            if self.translate(delta):
                 return
-            self.y -= delta.opposite.y
-            self.x -= delta.opposite.x
-
-        self.rotation = (self.rotation - 1 )  % len(
-            self.rotations)
+            self.translate(delta.opposite)
+        self.rotation = old_rotation
 
 
     def display(self, attributes: int ) -> None:
@@ -123,15 +117,25 @@ class Shape:
         self.screen.attroff(attributes)
 
     
-    def is_within_bounds(self, to_y: int | None= None, to_x: int | None = None) -> bool:
+    def is_within_bounds(self, direction: Direction) -> bool:
 
-        to_y = to_y if not to_y is None else self.y
-        to_x = to_x if not to_x is None else self.x
-
-        top, left = TOP_LEFT_CORNER
+        _, left = TOP_LEFT_CORNER
         bottom, right = BOTTOM_RIGHT_CORNER
-        return top < to_y < bottom and left < to_x < right
-
+        match direction:
+            case Direction.DOWN:
+                max_y, _ = max(self.body,
+                    key=lambda pos: pos[0])
+                return max_y <= bottom
+            case Direction.LEFT:
+                _, min_x = min(self.body,
+                    key=lambda pos: pos[1])
+                return min_x >= left
+            case Direction.RIGHT:
+                _, max_x = max(self.body,
+                    key=lambda pos: pos[1])
+                return max_x < right
+            case _:
+                return True
 
 
 
