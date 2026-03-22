@@ -22,9 +22,12 @@ class Game:
         shape: Shape = self.shapes.pop()
         while self.shapes:
             shape.fall()
+            curses.napms(64)
             if shape.is_grounded:
                 shape = self.shapes.pop()
             shape.input()
+            shape.rotate()
+            curses.napms(250)
 
             
 

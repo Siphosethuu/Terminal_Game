@@ -20,15 +20,23 @@ class Shape:
 
         self.reset()
 
+
     @property
-    def body(self) -> set[Tuple[int, int]]:
+    def rotations(self)-> List[set[Tuple[int, int]]]:
         global SHAPES
 
-        return SHAPES[self.shape]["ROTATIONS"][self.rotation]
+        return SHAPES[self.shape]["ROTATIONS"]
 
-    
+
+   
+    @property
+    def body(self) -> set[Tuple[int, int]]:
+        return self.rotations[self.rotation]
+
+
+
     def reset(self) -> None:
-        self.y, self.x = 8, 8
+        self.y, self.x = 10, 10
         self.rotation: int = 0
         self.is_grounded: bool = False
 
@@ -75,7 +83,6 @@ class Shape:
         match key:
             case Keys.UP | 119 | 87:
                 self.rotate()
-                pass
             case Keys.DOWN | 115 | 83:
                 self.fall()
             case Keys.RIGHT | 100 | 68:
@@ -83,23 +90,31 @@ class Shape:
             case Keys.LEFT | 97 | 65:
                 self.translate(Direction.LEFT) 
             case Keys.ESC:
-                #Display Menu
+                # Display Menu
                 pass
 
     def rotate(self) -> None:
         global SHAPES
 
+
+        self.display(self.bkgd_attr)
+
         self.rotation = (self.rotation + 1) % len(
-                SHAPES[self.shape])
+            self.rotations)
         for delta in (Direction.NONE, Direction.RIGHT, Direction.LEFT):
+            self.y += delta.y
+            self.x += delta.x
             if not self.is_another_piece_obstructing(delta):
+                self.display(self.attribute)
                 return
+            self.y -= delta.opposite.y
+            self.x -= delta.opposite.x
 
         self.rotation = (self.rotation - 1 )  % len(
-                SHAPES[self.shape])
+            self.rotations)
 
 
-    def display(self, attributes: int) -> None:
+    def display(self, attributes: int ) -> None:
         self.screen.attron(attributes)
         for y, x in self.body:
             self.screen.addstr(
@@ -108,7 +123,7 @@ class Shape:
         self.screen.attroff(attributes)
 
     
-    def is_within_bounds(self, to_y: int = None, to_x: int = None) -> bool:
+    def is_within_bounds(self, to_y: int | None= None, to_x: int | None = None) -> bool:
 
         to_y = to_y if not to_y is None else self.y
         to_x = to_x if not to_x is None else self.x
