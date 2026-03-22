@@ -6,16 +6,7 @@ from consts import LINES, COLS
 from snake.stage import Stage
     
 BODY_PART: str = '  '
-SNAKE_FOOD: str = ' @'
 
-
-
-class Keys:
-    UP: int = curses.KEY_UP
-    ESC: int = 27
-    DOWN: int = curses.KEY_DOWN
-    LEFT: int = curses.KEY_LEFT
-    RIGHT: int = curses.KEY_RIGHT
 
 
 
@@ -78,4 +69,7 @@ def get_half_world_stage() -> Stage:
 
 def get_quarter_world_stage() -> Stage:
     raise NotImplementedError
+
+def get_empty_world() -> Stage:
+    return Stage({})
 

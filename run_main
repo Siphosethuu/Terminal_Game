@@ -1,0 +1,5 @@
+#!bin/usr/env
+
+sleep 3
+
+python main.py

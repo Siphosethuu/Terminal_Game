@@ -1,4 +1,4 @@
-
+import curses
 
 from os import get_terminal_size
 from typing import Dict 
@@ -11,6 +11,13 @@ LINES: int = SIZE.lines
 
 BLOCK: str = '⬛'
 
+
+class Keys:
+    UP: int = curses.KEY_UP
+    ESC: int = 27
+    DOWN: int = curses.KEY_DOWN
+    LEFT: int = curses.KEY_LEFT
+    RIGHT: int = curses.KEY_RIGHT
 
 
 class Direction(Enum):

@@ -1,53 +1,32 @@
 import curses
 from math import ceil
 from typing import List, Tuple
-from tetris.shapes import Shape
-from random import  choice
-from consts import Keys, BLOCK, hide_cursor
+from tetris.shape import Shape
+from random import  choice, shuffle
+from consts import BLOCK, hide_cursor
+from threading import Lock, Thread
 
 shapes: List[str] = ['L', 'J', 'Z', 'S', 'T', 'O']
 class Game:
-    def __init__(self, stdscr: curses.window) -> None:
-        self.screen: curses.window = curses.newwin(
-            curses.LINES, curses.COLS, 0, 0
-        )
-        self.bg_window = stdscr
-
+    def __init__(self, screen: curses.window) -> None:
+        self.screen = screen
+        self.shapes: List[Shape] = Shape.create_shapes(self.screen)
+        self.lock: Lock = Lock()
         self.score: int = 0
         self.screen.nodelay(True)
         self.screen.keypad(True)
 
     @hide_cursor() # type: ignore
     def start(self) -> None:
-        shape: Shape = self.generate_shape()
-        grounded: List[Tuple] = []
-        while True:
-            self.screen.clear()
-            shape.display(self.screen)
-            curses.napms(64)
-            shape.fall(self.screen)
-            curses.napms(64)
-            # shape.rotate(self.screen)
-            for y, x, char in grounded:
-                self.screen.addstr(y, x, char)
-            self.screen.refresh()
+        shuffle(self.shapes)
+        shape: Shape = self.shapes.pop()
+        while self.shapes:
+            shape.fall()
             if shape.is_grounded:
+                shape = self.shapes.pop()
+            shape.input()
 
-                for y, x in shape.body:
-                    new_y, new_x = shape.y+y,shape.x+x
-                    grounded.append(
-                        (new_y, new_x, BLOCK)
-                    )
-                shape = self.generate_shape()
-            key: int = self.screen.getch()
-            match key:
-                case Keys.ESC:
-                    exit()
-                case "KEY_LEFT"
-                case _:
-                    pass
+            
 
-    def generate_shape(self) -> Shape:
-        return Shape(choice(shapes))
 
 
