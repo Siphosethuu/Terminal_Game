@@ -1,5 +1,6 @@
 import curses
 from typing import Tuple
+from timer import Timer
 
 from snake.food import Food
 from snake.snake import Snake 
@@ -21,12 +22,11 @@ class Game:
         self.screen.nodelay(True)
 
 
-
     def set_theme(self, color_pair: int) -> None:
         self.screen.bkgd(' ', color_pair)
 
 
-    @hide_cursor() # type: ignore
+    @hide_cursor
     def start(self, stage: Stage) -> str:
 
         snake: Snake = Snake(self.screen)
@@ -36,9 +36,7 @@ class Game:
         snake.draw()
         self.draw_food()
         while True:
-            snake.grow()
-
-            head: Tuple[int,int] = snake.get_head()
+            head = snake.get_head()
             if snake.bit_itself():
                 return f"Bit yourself at {head}." 
             if snake.crashed(stage):
@@ -46,15 +44,16 @@ class Game:
 
     
             has_eaten = Food.is_food_eaten(head, self.food)
+            self.screen.addstr(2, 0, f"Head at {head}")
             snake.move(has_eaten)
             if has_eaten:
                 self.score += 1
                 self.food = Food.food(snake, stage)
                 self.draw_food()
 
+            snake.input()
             self.display_score()
 
-            snake.input()
             self.screen.refresh()
 
 

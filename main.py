@@ -28,10 +28,10 @@ def main(stdscr: curses.window) -> None:
 
 
 
-def play_snake(stdscr: curses.window, theme: int) -> str:
+def play_snake(stdscr: curses.window) -> str:
     game: Snake = Snake(stdscr)
     #game.set_theme(theme)
-    game.start( get_empty_world() )
+    game.start( get_empty_world(stdscr) )
     return "Won or Lost."
 
 def play_memory() -> None:

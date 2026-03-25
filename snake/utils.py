@@ -70,6 +70,6 @@ def get_half_world_stage() -> Stage:
 def get_quarter_world_stage() -> Stage:
     raise NotImplementedError
 
-def get_empty_world() -> Stage:
-    return Stage({})
+def get_empty_world(stdscr: curses.window) -> Stage:
+    return Stage({}, stdscr)
 

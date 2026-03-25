@@ -1,9 +1,9 @@
 import curses
 
 from os import get_terminal_size
-from typing import Dict 
+from typing import Dict, Tuple 
 from enum import Enum
-from curses import curs_set
+from curses import curs_set, window
 SIZE = get_terminal_size()
 
 COLS: int = SIZE.columns
@@ -45,17 +45,31 @@ class Direction(Enum):
 
 import functools
 
-def hide_cursor():
-    def decorator(func: "function"):
-        @functools.wraps(func) # type: ignore
-        def wrapper(*args, **kwargs):
-            OLD_CURS: int = curs_set(0)
-            try:
-                func(*args, **kwargs) # type: ignore
-            finally:
-                curs_set(OLD_CURS)
-        return wrapper
-    return decorator
+def hide_cursor(func):
+    @functools.wraps(func) 
+    def wrapper(*args, **kwargs):
+        OLD_CURS: int = curs_set(0)
+        try:
+            func(*args, **kwargs) # type: ignore
+        finally:
+            curs_set(OLD_CURS)
+    return wrapper
+
+def draw_square_boundary(screen: window, *args: int) -> None:
+    if len(args) != 4:
+        raise ValueError("Invalid args: {args}. Should be, start_y, start_x, end_y, end_x.")
+
+
+    start_y, start_x, end_y, end_x = args
+    left = start_x - 2
+    top = start_y - 1
+    for y in range(start_y , end_y):
+        screen.addstr(y, left, "[]", curses.A_STANDOUT)
+        screen.addstr(y, end_x, "[]", curses.A_STANDOUT)
+
+    for x in range(left, end_x + 2, 2):
+        screen.addstr(top, x, "[]", curses.A_STANDOUT)
+        screen.addstr(end_y, x, "[]", curses.A_STANDOUT)
 
 
 

@@ -1,8 +1,9 @@
-from collections import OrderedDict
+
+from timer import Timer
 from typing import List, Tuple
 from consts import Direction, Keys
 from snake.utils import LINES, COLS, BODY_PART
-from curses import A_ATTRIBUTES, A_CHARTEXT, napms, window, A_REVERSE
+from curses import A_ATTRIBUTES, A_CHARTEXT, napms, window, A_REVERSE, error
 from snake.stage import Stage
 
 
@@ -15,7 +16,7 @@ class Snake():
         info: int = self.screen.getbkgd()
         self.bkgd_char: str = chr(info & A_CHARTEXT)
         self.bkgd_attr: int = info & A_ATTRIBUTES
-        self.reset(5)
+        self.reset(4)
 
 
     def reset(self, _size: int) -> None:
@@ -23,8 +24,8 @@ class Snake():
 
         self.body.clear()
         head_y: int = LINES // 2
-        head_x: int = ( COLS - _size ) // 2
-        for body_x in range(head_x, head_x - _size, -2):
+        head_x: int = ( COLS + _size * 2 ) // 2
+        for body_x in range(head_x, head_x - (_size * 2), -2):
             self.body.append((head_y, body_x))
 
 
@@ -41,9 +42,11 @@ class Snake():
     def get_head(self) -> Tuple[int, int]:
         return self.body[0]
 
+    
     def overlaps(self, pos: Tuple[int, int]) -> bool:
         return pos in self.body
 
+    
     def draw(self) -> None:
         global BODY_PART
 
@@ -51,19 +54,25 @@ class Snake():
             self.screen.addstr(y, x, BODY_PART, A_REVERSE)
 
     
-    def move(self, has_eaten: bool):
+    def move(self, has_eaten_food: bool):
         global BODY_PART
 
-
+        self.grow()
         y, x = self.get_head()
-        self.screen.addstr(y, x, BODY_PART, A_REVERSE)
+        try:
+            self.screen.addstr(y, x, BODY_PART, A_REVERSE)
+        except error as e:
+            pass
 
-        if not has_eaten:
+        if not has_eaten_food:
             y, x = self.get_tail()
-            self.screen.addstr(
-                y, x, BODY_PART, 
-                self.bkgd_attr
-            )
+            try:
+                self.screen.addstr(
+                        y, x, BODY_PART, 
+                        self.bkgd_attr
+                        )
+            except error as e:
+                pass
 
 
     def bit_itself(self) -> bool:
@@ -78,7 +87,7 @@ class Snake():
 
     def input(self) -> None:
         key: int = self.screen.getch()
-        napms(200)
+        napms(84)
         match key:
             case Keys.UP | 119 | 87:
                 if self.direction.name != "DOWN":

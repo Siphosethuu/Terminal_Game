@@ -1,15 +1,14 @@
-import curses
 
 
 from typing import Dict, List, Tuple
-from consts import COLS, LINES, Direction
+from consts import Direction
 
 WIDTH: int = 20
-HEIGHT: int = 40
+HEIGHT: int = 20
 
 
-x: int = ( COLS - WIDTH ) // 2
-y: int = (LINES - HEIGHT ) // 2
+X: int = 11
+Y: int = 5
 SHAPES = {
     'L': { 
         "COLOR": 2,
@@ -68,7 +67,7 @@ ROTATION_DIRECTIONS: Tuple = (
     Direction.NONE, Direction.RIGHT, Direction.LEFT
 )
 
-TOP_LEFT_CORNER: Tuple[int, int] = (0, 0)
-BOTTOM_RIGHT_CORNER: Tuple[int, int] = (LINES, COLS)
+TOP_LEFT_CORNER: Tuple[int, int] = ( Y,  X )
+BOTTOM_RIGHT_CORNER: Tuple[int, int] = (Y + HEIGHT, X + WIDTH)
 
 
