@@ -8,16 +8,21 @@ from memory.game import Game as Memory
 from tetris.game import Game as Tetris
 
 import curses
-
+ORANGE: int = 8 
 def main(stdscr: curses.window) -> None:
     curses.start_color()
+
+    curses.init_color(ORANGE, 1000, 647, 0) 
     curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_BLACK)
     curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_BLUE)
-    curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    curses.init_pair(3, curses.COLOR_BLACK, ORANGE) 
     curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_RED)
     curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_GREEN)
     curses.init_pair(6, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
     curses.init_pair(7, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+
+    curses.init_pair(8, curses.COLOR_BLACK, curses.COLOR_CYAN)
+    stdscr.bkgd(' ', curses.color_pair(1))
     play_tetris(stdscr)
 
 

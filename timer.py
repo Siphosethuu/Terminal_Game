@@ -3,26 +3,27 @@
         clear_code_projects (YouTuber)
 """
 
-from time import sleep 
-import threading
+import time
 
 class Timer:
     def __init__(self, interval: float, func) -> None:
         self.interval: float = interval
+        self.start_time: float = 0
         self.active: bool = False
-        self.thread = threading.Thread(target=self.run)
-        self.thread.daemon = True
         self.function = func
 
-    def activate(self) -> None:
+    def start(self) -> None:
         self.active = True
-        self.thread.start()
+        self.start_time = time.time()
 
-    def deactivate(self) -> None:
+
+    def stop(self) -> None:
         self.active = False
+        self.start_time = 0
 
-    def run(self) -> None:
-        while self.active:
-            sleep(self.interval)
-            self.function()
+    
+    def update(self, *args, **kwargs) -> None:
+        elapsed: float = time.time() - self.start_time
+        if elapsed >= self.interval:
+            self.function(*args, **kwargs)
 

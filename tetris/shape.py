@@ -1,22 +1,14 @@
 
 
 
-
-import curses
-
-
-from enum import Enum
 from typing import Tuple
-from consts import Direction, Keys, BLOCK
+from consts import Direction, Keys
 from timer import Timer
-from curses import A_ATTRIBUTES, A_CHARTEXT, napms, window
+from curses import A_ATTRIBUTES, A_CHARTEXT, color_pair, window
 from tetris.utils import *
 
 
-class Action(Enum):
-    CLEAR = 1
-    DRAW = 2
-
+DT: float = 0.485
 
 
 class Shape:
@@ -24,14 +16,37 @@ class Shape:
     left: int = TOP_LEFT_CORNER[1]
     bottom, right = BOTTOM_RIGHT_CORNER
 
-
-    def __init__(self, shape: str, screen: window, attribute: int) -> None:
+    def __init__(self, shape: str, attributes: int) -> None:
+        global DT
         self.shape = shape
-        self.screen = screen
-        self.bkgd_attr: int = self.screen.getbkgd() & A_ATTRIBUTES # type: ignore
-        self.attribute = attribute
-        self.reset()
+        self.attributes = attributes
+        self.falling_effect: Timer = Timer(DT, self.fall)
+        
 
+    @property
+    def max_y(self) -> int:
+        return max(self.body,key=lambda pos: pos[0])[0]
+
+    @property
+    def min_y(self) -> int:
+        return min(self.body,key=lambda pos: pos[0])[0] 
+
+
+    @property
+    def min_x(self) -> int:
+        return min(self.body, key=lambda pos: pos[1])[1]
+
+    @property
+    def max_x(self) -> int:
+        return max(self.body, key=lambda pos: pos[1])[1]
+
+    @property
+    def y(self) -> int:
+        return self.pos[0]
+
+    @property
+    def x(self) -> int:
+        return self.pos[1]
 
     @property
     def rotations(self)-> List[set[Tuple[int, int]]]:
@@ -40,7 +55,6 @@ class Shape:
         return SHAPES[self.shape]["ROTATIONS"]
 
 
-   
     @property
     def body(self) -> set[Tuple[int, int]]:
         return self.rotations[self.rotation]
@@ -48,46 +62,50 @@ class Shape:
 
 
     def reset(self) -> None:
-        self.y, self.x = Shape.top, 21
+        self.pos: Tuple[int, int] = ( Shape.top, 19 )
         self.rotation: int = 0
         self.is_grounded: bool = False
-        self.falling_effect = Timer(0.3, self.fall)
+        self.falling_effect.start()
 
-    def is_another_piece_obstructing(self, delta: Direction) -> bool:
-        for pos_y, pos_x in self.body:
-            y: int = pos_y + delta.y
-            x: int = pos_x + delta.x
-            if (y, x) in self.body:
-                continue
 
-            to_y: int = y + self.y 
-            to_x: int = x + self.x
-
-            attr: int = self.screen.inch(to_y, to_x) & A_ATTRIBUTES
-            
-            if attr != self.bkgd_attr:
+    @staticmethod
+    def another_piece_obstructing(pos: Tuple[int, int], body: set[Tuple[int, int]]) -> bool:
+        """
+        ASSUMES WE FIRST CLEAR THE PREVIOUS STATE DRAWN
+        """
+        for dy, dx in body:
+            y: int = pos[0] + dy
+            x: int = pos[1] + dx
+            location_info = Shape.screen.inch(y, x)
+            if location_info != Shape.bkgd_info:
                 return True
         return False
+                
 
             
-        
+    @staticmethod
+    def is_valid(pos:Tuple[int, int], body: set[Tuple[int, int]]) -> bool:
+        return not Shape.another_piece_obstructing( pos, body ) and Shape.is_within_bounds(pos, body)
 
 
-    def translate(self, direction: Direction) -> bool:
-        if self.is_another_piece_obstructing(direction) or not self.is_within_bounds(direction):
-            return False
+    @staticmethod
+    def apply_translation(pos: Tuple[int, int], direction: Direction, step: int = 1) -> Tuple[int, int]:
+        return (pos[0] + (direction.y * step), pos[1] + ( direction.x * step))
 
-        self.display(Action.CLEAR)
-        self.y += direction.y
-        self.x += direction.x
-        self.display(Action.DRAW)
-        return True
 
     
     def fall(self) -> None:
-        if not self.translate(Direction.DOWN):
-            self.is_grounded = True
-            self.falling_effect.deactivate()
+        pos = Shape.apply_translation(self.pos, Direction.DOWN)
+        self.clear()
+        if Shape.is_valid(pos, self.body):
+            self.pos = pos
+            self.falling_effect.start()
+        else:
+            self.is_grounded = True 
+            self.falling_effect.stop()
+        self.draw()
+
+
 
     def input(self) -> None:
         key: int = self.screen.getch()
@@ -95,94 +113,93 @@ class Shape:
             case Keys.UP | 119 | 87:
                 self.rotate()
             case Keys.DOWN | 115 | 83:
-                # self.fall()
-                pass
+                self.fall()
             case Keys.RIGHT | 100 | 68:
                 self.translate(Direction.RIGHT)
             case Keys.LEFT | 97 | 65:
-                self.translate(Direction.LEFT) 
+                self.translate(Direction.LEFT)
             case Keys.ESC:
                 # Display Menu
-                pass
+                self.is_grounded = True
+
+
+    def translate(self, direction: Direction) -> None:
+        self.clear()
+        pos = Shape.apply_translation(self.pos, direction)
+
+        if Shape.is_valid(pos, self.body):
+            self.pos = pos
+        self.draw()
+
 
     def rotate(self) -> None:
-        global SHAPES, ROTATION_DIRECTIONS
+        global ROTATION_DIRECTIONS
 
 
-        self.display(Action.CLEAR)
-
-        old_rotation = self.rotation
+        self.clear()
+        revert: bool = True
+        old_rotation = self.rotation 
         self.rotation = (self.rotation + 1) % len(self.rotations)
-        for delta in ROTATION_DIRECTIONS:
-            if not self.is_another_piece_obstructing(delta) or self.is_within_bounds(delta):
-                self.display(Action.DRAW)
-                return
-            self.translate(delta.opposite)
-        self.rotation = old_rotation
+        try:
+            for delta in ROTATION_DIRECTIONS:
+                for step in range(1, 3):
+                    pos = Shape.apply_translation(self.pos, delta, step)
+                    if self.is_valid(pos, self.body):
+                        self.pos = pos
+                        revert = False
+                        return 
+        finally:
+            if revert:
+                self.rotation = old_rotation
+            self.draw()
 
 
-    def display(self, action: Action, pos: Tuple[int, int] = None) -> None:
-        attributes: int = -6000
-        character: str = ''
-        if pos == None:
-            pos = ( self.y, self.x )
-        
+    def draw(self) -> None:
+        self.display(self.pos, "[]", self.attributes)
 
-        match action:
-            case Action.CLEAR:
-                attributes = self.bkgd_attr
-                character = "  "
-            case Action.DRAW:
-                attributes = self.attribute 
-                character = "[]"
-            case _:
-                raise ValueError(
-                    f"Unsupported action: {action}"
+    def clear(self) -> None:
+        self.display(self.pos, "  ", Shape.bkgd_attr)
+
+    def display(self, pos:Tuple, char: str, attributes: int) -> None:
+        Shape.screen.attron(attributes)
+        for dy, dx in self.body:
+            y: int = dy + pos[0]
+            x: int = dx + pos[1]
+            if y >= Shape.top:
+                Shape.screen.addstr(
+                    y, x, char
                 )
-
-        self.screen.attron(attributes)
-        for y, x in self.body:
-            actual_y: int = y + pos[0]
-            actual_x: int = x + pos[1]
-            if self.is_within_bounds(Direction.NONE) and actual_y > Shape.top:
-                self.screen.addstr(
-                    actual_y, actual_x, character
-                )
-        self.screen.attroff(attributes)
+        Shape.screen.attroff(attributes)
 
     
-    def is_within_bounds(self, direction: Direction) -> bool:
-
-        match direction:
-            case Direction.DOWN:
-                max_y, _ = max(self.body,
-                    key=lambda pos: pos[0])
-                return max_y + self.y < Shape.bottom
-            case Direction.LEFT:
-                _, min_x = min(self.body,
-                    key=lambda pos: pos[1])
-                return min_x + self.x > Shape.left
-            case Direction.RIGHT:
-                _, max_x = max(self.body,
-                    key=lambda pos: pos[1])
-                return max_x + self.x < Shape.right
-            case _:
-                return True
+    @staticmethod
+    def is_within_bounds(pos: Tuple[int, int], body: set[Tuple[int, int]]) -> bool:
+        for dy, dx in body:
+            y: int = dy + pos[0]
+            x: int = dx + pos[1]
+            if not (y < Shape.bottom and x >= Shape.left and x < Shape.right):
+                return False
+        return True
 
 
 
     @classmethod
-    def create_shapes(cls, screen: window) -> List["Shape"]:
+    def create_shapes(cls) -> List["Shape"]:
         global SHAPES
 
         shapes: List[Shape] = []
         for shape in SHAPES:
-            attr: int = SHAPES[shape]["COLOR"]
+            attr = SHAPES[shape]["ATTRIBUTES"]
             for _ in range(0, 3):
-                shapes.append(Shape(
-                    shape, screen,
-                    curses.color_pair(attr)) 
-                )
+                shapes.append(Shape(shape, color_pair(attr)))
         return shapes
+
+
+    @classmethod
+    def init_screen(cls, screen: window) -> None:
+        Shape.screen = screen
+        Shape.bkgd_info = Shape.screen.getbkgd()
+        Shape.bkgd_char: str = chr(Shape.bkgd_info & A_CHARTEXT)
+        Shape.bkgd_attr: int = Shape.bkgd_info & A_ATTRIBUTES
 
 
